@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MemeEditorViewController.swift
 //  Meme Me
 //
 //  Created by Sanket Ray on 01/05/17.
@@ -8,21 +8,20 @@
 
 import UIKit
 
-class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
+class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate, UITextFieldDelegate {
 
     
     @IBOutlet weak var imagePickerView: UIImageView!
     @IBOutlet weak var top: UITextField!
     @IBOutlet weak var bottom: UITextField!
     @IBOutlet weak var Camera: UIBarButtonItem!
- 
-   
-    
+    @IBOutlet weak var topToolBar: UINavigationBar!
+    @IBOutlet weak var bottomToolBar: UIToolbar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
      
-        Camera.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
+        
         top.text = "TOP"
         bottom.text = "BOTTOM"
         configureTextField(textField: top)
@@ -30,18 +29,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         Share.isEnabled = false
         
+
+    }
+    @IBAction func cancel(_ sender: Any) {
+        dismiss(animated: true, completion: nil)
     }
     
     func configureTextField(textField: UITextField){
         textField.defaultTextAttributes = memeTextAttributes
         textField.textAlignment = .center
-        top.delegate = self
-        bottom.delegate = self
+        textField.delegate = self
     }
     
-    
     override func viewWillAppear(_ animated: Bool) {
-        
+        Camera.isEnabled = UIImagePickerController.isSourceTypeAvailable(.camera)
         super.viewWillAppear(animated)
         subscribeToKeyboardNotifications()
     }
@@ -113,22 +114,20 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         dismiss(animated: true, completion: nil)
     }
 
-    struct Meme {
-        var topText : String
-        var bottomText : String
-        var originalImage : UIImage
-        var memedImage : UIImage
-    }
+
     
     func save() {
         // Create the meme
         let meme = Meme(topText: top.text!, bottomText: bottom.text!, originalImage: imagePickerView.image!, memedImage: generateMemedImage())
+        
+       let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.memes.append(meme)
+       
     }
     
     func generateMemedImage() -> UIImage {
         
-        self.top.isHidden = true
-        self.bottom.isHidden = true
+        toolBar(bool: true)
         
         // Render view to an image
         UIGraphicsBeginImageContext(self.view.frame.size)
@@ -136,10 +135,14 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         let memedImage:UIImage = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
         
-        self.top.isHidden = false
-        self.bottom.isHidden = false
+        toolBar(bool: false)
         
         return memedImage
+    }
+    
+    func toolBar(bool : Bool){
+        topToolBar.isHidden = bool
+        bottomToolBar.isHidden = bool
     }
     
     func configureImage (image : UIImagePickerController, sourceType: UIImagePickerControllerSourceType) {
@@ -174,15 +177,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 self.save()
                 self.dismiss(animated: true, completion: nil)
             }
-        
-        self.present(controller, animated: true, completion: nil)
         }
-        
     }
- 
-    
-    
-    
-    
+
 }
 
